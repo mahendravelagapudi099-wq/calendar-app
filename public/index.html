@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>TaskSync - Advanced Dark Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <style type="text/tailwindcss">
+        :root {
+            --bg-deep: #0B0E14;
+            --bg-navy: #161B22;
+            --bg-charcoal: #21262D;
+            --accent-cyan: #00F5FF;
+            --accent-purple: #A855F7;
+            --text-muted: #8B949E;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: #E6EDF3;
+        }
+        .floating-label-group {
+            position: relative;
+        }
+        .floating-label-group input:focus ~ label,
+        .floating-label-group input:not(:placeholder-shown) ~ label,
+        .floating-label-group textarea:focus ~ label,
+        .floating-label-group textarea:not(:placeholder-shown) ~ label {
+            transform: translateY(-1.5rem) scale(0.85);
+            color: var(--accent-cyan);
+        }
+        .floating-label-group label {
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            background: transparent;
+            color: var(--text-muted);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--bg-charcoal);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="border-b border-white/10 bg-[var(--bg-navy)]/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[var(--accent-cyan)] text-3xl fill-1">sync_alt</span>
+                    <span
+                        class="font-bold text-xl tracking-tight bg-gradient-to-r from-[var(--accent-cyan)] to-[var(--accent-purple)] bg-clip-text text-transparent">TaskSync</span>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <div id="syncStatus"
+                        class="hidden items-center gap-1.5 sm:gap-2 bg-emerald-500/10 px-2 sm:px-3 py-1.5 rounded-full border border-emerald-500/20">
+                        <span class="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span
+                            class="hidden sm:inline text-xs font-medium text-emerald-400 uppercase tracking-tight">Calendar
+                            Synced</span>
+                        <span
+                            class="sm:hidden text-xs font-medium text-emerald-400 uppercase tracking-tight">Synced</span>
+                    </div>
+                    <div id="notConnectedStatus"
+                        class="hidden items-center gap-1.5 sm:gap-2 bg-red-500/10 px-2 sm:px-3 py-1.5 rounded-full border border-red-500/20">
+                        <span class="flex h-2 w-2 rounded-full bg-red-400"></span>
+                        <span class="hidden sm:inline text-xs font-medium text-red-400 uppercase tracking-tight">Not
+                            Connected</span>
+                        <span class="sm:hidden text-xs font-medium text-red-400 uppercase tracking-tight">Offline</span>
+                    </div>
+                    <a href="/auth/google" id="signInBtn"
+                        class="flex items-center gap-1 sm:gap-2 text-[var(--text-muted)] hover:text-[var(--accent-cyan)] transition-colors text-sm font-medium group p-2 sm:p-0">
+                        <span
+                            class="material-symbols-outlined text-lg group-hover:rotate-12 transition-transform">login</span>
+                        <span class="hidden sm:inline">Sign In</span>
+                    </a>
+                    <a href="/logout" id="signOutBtn"
+                        class="hidden flex items-center gap-1 sm:gap-2 text-[var(--text-muted)] hover:text-red-400 transition-colors text-sm font-medium group p-2 sm:p-0">
+                        <span
+                            class="material-symbols-outlined text-lg group-hover:rotate-12 transition-transform">logout</span>
+                        <span class="hidden sm:inline">Sign Out</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <!-- Left Sidebar -->
+            <div class="lg:col-span-4 space-y-6">
+
+                <!-- User Profile Card -->
+                <div class="bg-[var(--bg-navy)] p-6 rounded-2xl border border-white/5 shadow-xl">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div id="userAvatar"
+                            class="h-14 w-14 rounded-2xl bg-gradient-to-br from-[var(--accent-cyan)] to-[var(--accent-purple)] flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-cyan-500/20">
+                            G
+                        </div>
+                        <div>
+                            <h2 id="userName" class="font-semibold text-lg leading-tight">Guest User</h2>
+                            <p id="userEmail" class="text-sm text-[var(--text-muted)]">Not logged in</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <!-- Calendar Connection -->
+                        <div id="calendarCard"
+                            class="p-4 bg-[var(--bg-charcoal)] rounded-xl border border-white/5 opacity-50">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill="#4285F4"
+                                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                        <path fill="#34A853"
+                                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                        <path fill="#FBBC05"
+                                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                        <path fill="#EA4335"
+                                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                    </svg>
+                                    <span class="text-sm font-medium">Google Calendar</span>
+                                </div>
+                                <span id="calendarCheck"
+                                    class="material-symbols-outlined text-emerald-400 text-sm hidden">check_circle</span>
+                            </div>
+                        </div>
+
+                        <!-- Monthly Quota (Visual Only) -->
+                        <div class="p-4 bg-[var(--bg-charcoal)] rounded-xl border border-white/5">
+                            <div class="flex justify-between items-center mb-2">
+                                <p class="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                                    Tasks This Month</p>
+                                <span class="text-[10px] text-[var(--accent-cyan)] font-bold" id="taskCount">0</span>
+                            </div>
+                            <div class="w-full bg-black/40 h-1.5 rounded-full">
+                                <div id="quotaBar"
+                                    class="bg-gradient-to-r from-[var(--accent-cyan)] to-[var(--accent-purple)] h-1.5 rounded-full w-[0%] transition-all duration-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent History -->
+                <div class="bg-[var(--bg-navy)] p-6 rounded-2xl border border-white/5 shadow-xl">
+                    <h3
+                        class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">history</span>
+                        Recent History
+                    </h3>
+                    <div id="recentHistory" class="space-y-3">
+                        <p class="text-xs text-[var(--text-muted)] text-center py-4">No recent tasks</p>
+                    </div>
+                </div>
+
+                <!-- Smart Suggestions -->
+                <div id="smartSuggestions"
+                    class="bg-gradient-to-br from-[var(--accent-purple)]/10 to-transparent border border-[var(--accent-purple)]/20 p-6 rounded-2xl relative overflow-hidden group">
+                    <div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span class="material-symbols-outlined text-7xl">lightbulb</span>
+                    </div>
+                    <h3 class="font-semibold text-[var(--accent-purple)] mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                        Quick Tip
+                    </h3>
+                    <p class="text-sm text-[var(--text-muted)] leading-relaxed">
+                        Connect your Google account to sync tasks directly to your calendar with automatic reminders.
+                    </p>
+                    <div class="mt-4">
+                        <a href="/auth/google"
+                            class="text-[10px] px-3 py-2 bg-[var(--accent-purple)]/20 rounded-lg border border-[var(--accent-purple)]/30 text-[var(--accent-purple)] hover:bg-[var(--accent-purple)]/30 transition-colors inline-flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs">link</span>
+                            Connect Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Form Area -->
+            <div class="lg:col-span-8 bg-[var(--bg-navy)] rounded-2xl shadow-2xl border border-white/5 overflow-hidden">
+                <div
+                    class="px-8 py-6 border-b border-white/5 flex justify-between items-center bg-[var(--bg-charcoal)]/30">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Create Advanced Task</h1>
+                        <p class="text-[var(--text-muted)] text-sm mt-1">Configure sync parameters and notifications</p>
+                    </div>
+                    <div
+                        class="h-12 w-12 rounded-xl bg-[var(--bg-charcoal)] flex items-center justify-center border border-white/10">
+                        <span class="material-symbols-outlined text-[var(--accent-cyan)]">edit_calendar</span>
+                    </div>
+                </div>
+
+                <form id="taskForm" class="p-8 space-y-8">
+                    <!-- Task Title -->
+                    <div class="floating-label-group">
+                        <input
+                            class="block w-full px-4 pt-6 pb-2 text-white bg-transparent border-0 border-b-2 border-white/10 focus:ring-0 focus:border-[var(--accent-cyan)] transition-colors peer"
+                            id="title" name="title" placeholder=" " required="" type="text" />
+                        <label for="title">Task Title *</label>
+                    </div>
+
+                    <!-- Priority Level -->
+                    <div class="space-y-3">
+                        <label class="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Priority
+                            Level</label>
+                        <div class="flex gap-3">
+                            <label class="flex-1 cursor-pointer group">
+                                <input class="hidden peer" name="priority" type="radio" value="low" />
+                                <div
+                                    class="py-2 px-4 rounded-xl bg-[var(--bg-charcoal)] border border-white/5 text-center text-sm font-medium text-[var(--text-muted)] peer-checked:bg-emerald-500/20 peer-checked:border-emerald-500/50 peer-checked:text-emerald-400 transition-all hover:bg-white/5">
+                                    Low
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer group">
+                                <input checked="" class="hidden peer" name="priority" type="radio" value="medium" />
+                                <div
+                                    class="py-2 px-4 rounded-xl bg-[var(--bg-charcoal)] border border-white/5 text-center text-sm font-medium text-[var(--text-muted)] peer-checked:bg-[var(--accent-cyan)]/20 peer-checked:border-[var(--accent-cyan)]/50 peer-checked:text-[var(--accent-cyan)] transition-all hover:bg-white/5">
+                                    Medium
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer group">
+                                <input class="hidden peer" name="priority" type="radio" value="high" />
+                                <div
+                                    class="py-2 px-4 rounded-xl bg-[var(--bg-charcoal)] border border-white/5 text-center text-sm font-medium text-[var(--text-muted)] peer-checked:bg-red-500/20 peer-checked:border-red-500/50 peer-checked:text-red-400 transition-all hover:bg-white/5">
+                                    High
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="floating-label-group">
+                        <input
+                            class="block w-full px-4 pt-6 pb-2 text-white bg-transparent border-0 border-b-2 border-white/10 focus:ring-0 focus:border-[var(--accent-cyan)] transition-colors peer"
+                            id="reason" name="reason" placeholder=" " type="text" />
+                        <label for="reason">Category / Project</label>
+                    </div>
+
+                    <!-- Start & End Date/Time -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="floating-label-group">
+                            <input
+                                class="block w-full px-4 pt-6 pb-2 text-white bg-transparent border-0 border-b-2 border-white/10 focus:ring-0 focus:border-[var(--accent-cyan)] transition-colors peer"
+                                id="startDateTime" name="startDateTime" placeholder=" " required=""
+                                type="datetime-local" />
+                            <label for="startDateTime">Start Date & Time *</label>
+                        </div>
+                        <div class="floating-label-group">
+                            <input
+                                class="block w-full px-4 pt-6 pb-2 text-white bg-transparent border-0 border-b-2 border-white/10 focus:ring-0 focus:border-[var(--accent-cyan)] transition-colors peer"
+                                id="endDateTime" name="endDateTime" placeholder=" " required="" type="datetime-local" />
+                            <label for="endDateTime">End Date & Time *</label>
+                        </div>
+                    </div>
+
+                    <!-- Subheading & Description -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="floating-label-group">
+                            <input
+                                class="block w-full px-4 pt-6 pb-2 text-white bg-transparent border-0 border-b-2 border-white/10 focus:ring-0 focus:border-[var(--accent-cyan)] transition-colors peer"
+                                id="subheading" name="subheading" placeholder=" " type="text" />
+                            <label for="subheading">Subheading</label>
+                        </div>
+                        <div class="floating-label-group">
+                            <input
+                                class="block w-full px-4 pt-6 pb-2 text-white bg-transparent border-0 border-b-2 border-white/10 focus:ring-0 focus:border-[var(--accent-cyan)] transition-colors peer"
+                                id="description" name="description" placeholder=" " type="text" />
+                            <label for="description">Short Description</label>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Account Selection -->
+                    <div class="bg-black/20 p-6 rounded-2xl border border-white/5 space-y-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <span
+                                    class="material-symbols-outlined text-[var(--accent-purple)]">account_circle</span>
+                                <div>
+                                    <p class="text-sm font-semibold">Calendar Account</p>
+                                    <p class="text-[10px] text-[var(--text-muted)]">Choose which calendar to sync with
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input checked="" class="hidden peer" id="defaultEmailOption" name="emailOption"
+                                    type="radio" value="default" />
+                                <div
+                                    class="px-4 py-3 rounded-xl bg-[var(--bg-charcoal)] border border-white/10 text-sm font-medium peer-checked:bg-[var(--accent-cyan)]/10 peer-checked:border-[var(--accent-cyan)]/50 peer-checked:text-[var(--accent-cyan)] transition-all flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">person</span>
+                                    <span id="defaultAccountLabel">Default Account</span>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input class="hidden peer" id="customEmailOption" name="emailOption" type="radio"
+                                    value="custom" />
+                                <div
+                                    class="px-4 py-3 rounded-xl bg-[var(--bg-charcoal)] border border-white/10 text-sm font-medium peer-checked:bg-[var(--accent-purple)]/10 peer-checked:border-[var(--accent-purple)]/50 peer-checked:text-[var(--accent-purple)] transition-all flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">alternate_email</span>
+                                    Different Account
+                                </div>
+                            </label>
+                        </div>
+
+                        <div id="customEmailContainer" class="hidden pt-4 border-t border-white/10">
+                            <input
+                                class="w-full px-4 py-3 bg-[var(--bg-charcoal)] rounded-xl border border-white/10 text-sm focus:border-[var(--accent-purple)] focus:outline-none transition-colors"
+                                id="customEmail" name="customEmail" placeholder="Enter email address" type="email" />
+                            <p class="text-[10px] text-[var(--text-muted)] mt-2">You'll be redirected to authorize this
+                                account</p>
+                        </div>
+                    </div>
+
+                    <!-- Submit Actions -->
+                    <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p
+                            class="text-[10px] text-[var(--text-muted)] flex items-center gap-1.5 uppercase tracking-widest font-semibold">
+                            <span id="autoSyncIcon"
+                                class="material-symbols-outlined text-sm text-red-400">cloud_off</span>
+                            <span id="autoSyncText">Auto-sync disabled - Sign in required</span>
+                        </p>
+                        <div class="flex items-center gap-4 w-full sm:w-auto">
+                            <button
+                                class="flex-1 sm:flex-none px-6 py-3 font-medium text-[var(--text-muted)] hover:text-white transition-all"
+                                onclick="resetForm()" type="button">
+                                Discard
+                            </button>
+                            <button
+                                class="flex-1 sm:flex-none px-8 py-3 bg-gradient-to-r from-[var(--accent-cyan)] to-[var(--accent-purple)] text-white font-bold rounded-xl hover:opacity-90 focus:ring-4 focus:ring-cyan-500/20 transition-all shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2"
+                                id="submitBtn" type="submit">
+                                <span class="material-symbols-outlined text-lg">bolt</span>
+                                <span>Sync Task</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-8 border-t border-white/5 bg-[var(--bg-navy)]/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-sm text-[var(--text-muted)]">
+                    © 2024 TaskSync Platform. All systems operational.
+                </div>
+                <div class="flex items-center gap-6">
+                    <a class="text-xs text-[var(--text-muted)] hover:text-[var(--accent-cyan)] transition-colors"
+                        href="#">Privacy</a>
+                    <a class="text-xs text-[var(--text-muted)] hover:text-[var(--accent-cyan)] transition-colors"
+                        href="#">SLA</a>
+                    <a class="text-xs text-[var(--text-muted)] hover:text-[var(--accent-cyan)] transition-colors"
+                        href="#">API Documentation</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Help Button -->
+    <button id="helpBtn" onclick="showHelp()"
+        class="fixed bottom-6 right-6 p-3 bg-[var(--bg-navy)] border border-white/10 rounded-2xl shadow-2xl z-50 hover:scale-105 transition-all text-[var(--accent-cyan)] flex items-center gap-2 px-4 cursor-pointer">
+        <span class="material-symbols-outlined text-xl">support_agent</span>
+        <span class="text-xs font-bold uppercase tracking-tighter">Help</span>
+    </button>
+
+    <!-- Help Modal -->
+    <div id="helpModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-[var(--bg-navy)] border border-white/10 rounded-2xl shadow-2xl max-w-md w-full p-6 transform scale-95 opacity-0 transition-all duration-300"
+            id="helpModalContent">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[var(--accent-cyan)]">support_agent</span>
+                    Help & Support
+                </h3>
+                <button onclick="closeHelp()" class="text-[var(--text-muted)] hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="space-y-4 text-[var(--text-muted)] text-sm">
+                <div class="p-4 bg-[var(--bg-charcoal)] rounded-xl border border-white/5">
+                    <h4 class="font-semibold text-white mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[var(--accent-purple)] text-base">login</span>
+                        How to Sign In
+                    </h4>
+                    <p>Click "Sign In" and connect your Google account to sync tasks with Google Calendar.</p>
+                </div>
+                <div class="p-4 bg-[var(--bg-charcoal)] rounded-xl border border-white/5">
+                    <h4 class="font-semibold text-white mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[var(--accent-cyan)] text-base">add_task</span>
+                        Creating Tasks
+                    </h4>
+                    <p>Fill in the task title, select start/end times, and click "Sync Task" to add to your calendar.
+                    </p>
+                </div>
+                <div class="p-4 bg-[var(--bg-charcoal)] rounded-xl border border-white/5">
+                    <h4 class="font-semibold text-white mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-emerald-400 text-base">calendar_month</span>
+                        Calendar Sync
+                    </h4>
+                    <p>Tasks automatically sync to your Google Calendar. Check your calendar to see scheduled events.
+                    </p>
+                </div>
+            </div>
+            <div class="mt-6 pt-4 border-t border-white/10 text-center">
+                <p class="text-xs text-[var(--text-muted)]">Need more help? Contact support@tasksync.app</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification"
+        class="fixed top-20 right-6 max-w-sm bg-[var(--bg-navy)] border border-white/10 rounded-xl shadow-2xl p-4 transform translate-x-full transition-transform duration-300 z-50 hidden">
+        <div class="flex items-start gap-3">
+            <span id="notifIcon" class="material-symbols-outlined text-2xl"></span>
+            <div class="flex-1">
+                <h4 id="notifTitle" class="font-semibold text-sm"></h4>
+                <p id="notifMessage" class="text-xs text-[var(--text-muted)] mt-1"></p>
+            </div>
+            <button class="text-[var(--text-muted)] hover:text-white" onclick="hideNotification()">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
