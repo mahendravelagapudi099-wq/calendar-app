@@ -23,10 +23,12 @@ app.use(session({
 }));
 
 // Google OAuth2 Configuration
+const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/auth/google/callback`;
+
 const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
-    `http://localhost:${PORT}/auth/google/callback`
+    REDIRECT_URI
 );
 
 // Google Calendar API
@@ -343,9 +345,10 @@ app.listen(PORT, () => {
     console.log(`============================================`);
     console.log(`  TaskSync Calendar Server`);
     console.log(`============================================`);
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`\nRedirect URI: ${REDIRECT_URI}`);
     console.log(`\nMake sure to:`);
     console.log(`1. Set up your .env file with Google credentials`);
-    console.log(`2. Add http://localhost:${PORT}/auth/google/callback to your Google Cloud Console redirect URIs`);
+    console.log(`2. Add ${REDIRECT_URI} to your Google Cloud Console redirect URIs`);
     console.log(`============================================`);
 });
